@@ -1,5 +1,5 @@
 /* Isi dua nilai ini dari Supabase. Jangan pernah gunakan service_role key di browser. */
-const CONFIG={SUPABASE_URL:"YOUR_SUPABASE_URL",SUPABASE_ANON_KEY:"YOUR_SUPABASE_ANON_KEY"};
+const CONFIG={SUPABASE_URL:"https://fezkloyliybbqqolqlep.supabase.co",SUPABASE_ANON_KEY:"sb_publishable__YlUCLzf65jfCu0cRWDL2Q_PLbaUMd2"};
 const ready=!CONFIG.SUPABASE_URL.startsWith("YOUR_")&&!CONFIG.SUPABASE_ANON_KEY.startsWith("YOUR_");
 const sb=ready?window.supabase.createClient(CONFIG.SUPABASE_URL,CONFIG.SUPABASE_ANON_KEY):null;
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];let products=[];
