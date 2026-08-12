@@ -1,16 +1,23 @@
-# ANGEL INC ADMIN PORTAL
+# ANGEL INC. ADMIN PORTAL
 
-Repository terpisah dari website pelanggan (`website-angel-inc`) dan dapat memakai project Supabase yang sama.
+Repository `angel-inc-admin`; customer website `website-angel-inc`. Keduanya menggunakan Supabase yang sama.
 
 ## Setup
-1. Jalankan `supabase-schema.sql` di Supabase SQL Editor.
-2. Buat user admin di Supabase Authentication > Users.
-3. Buka `admin.js` dan isi `SUPABASE_URL` serta `SUPABASE_ANON_KEY`.
-4. Jangan pernah memasukkan `service_role` key ke browser.
-5. Deploy folder ini sebagai project Vercel terpisah, misalnya `angel-inc-admin`.
+1. `npm install`
+2. Copy `.env.example` ke `.env.local` dan isi URL + anon key Supabase.
+3. Jalankan `supabase/schema.sql` di Supabase SQL Editor.
+4. Buat user admin pertama melalui Supabase Authentication > Users.
+5. Setelah user dibuat, jadikan admin:
+   `update public.profiles set role='admin', full_name='Nama Admin' where id='UUID_USER';`
+6. `npm run dev` lalu buka `/auth/login/admin`.
+7. Deploy project ini ke Vercel sebagai repository `angel-inc-admin`.
 
-Portal menyediakan login Supabase Auth dan CRUD produk: tambah, edit, hapus, aktif/nonaktif, harga, stok, kategori, deskripsi, dan URL foto.
+Jangan masukkan service-role key ke frontend. Upload foto memakai Supabase Storage bucket `product-images`. Website pelanggan harus membaca tabel `products` dan menampilkan produk berstatus `active`.
 
-Website pelanggan tidak disentuh. Agar produk yang dibuat admin tampil di website pelanggan, bagian katalog website pelanggan nantinya membaca tabel `products` dari Supabase dan hanya menampilkan `is_active = true`.
+Catatan: implementasi ini adalah fondasi aplikasi nyata dengan Supabase Auth, RLS, database CRUD, storage upload, route protection, kategori, pesanan, pelanggan, laporan, settings, forgot-password dan responsive admin UI. Sebelum production, uji RLS dan alur order sesuai schema website pelanggan.
 
-Catatan keamanan: SQL contoh memberi CRUD kepada semua user `authenticated`. Untuk produksi, sebaiknya dibuat role admin/RLS yang lebih ketat.
+
+## ANGEL INC. Logo
+The supplied ANGEL INC. logo is included at `public/angel-inc-logo.jpg`.
+It is used in the admin login, desktop sidebar, mobile header, and browser icon.
+The customer website/repository is not modified by this admin project.
