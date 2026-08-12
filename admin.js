@@ -13,18 +13,59 @@ function table(list){if(!list.length)return "<p class='muted'>Belum ada produk.<
 function bind(){ $$("[data-edit]").forEach(b=>b.onclick=()=>edit(b.dataset.edit));$$("[data-del]").forEach(b=>b.onclick=()=>del(b.dataset.del))}
 function renderRecent(){ $("#recent").innerHTML=table(products.slice(0,5));bind()}
 function renderTable(){const q=$("#search").value.toLowerCase(),c=$("#filter").value;$("#table").innerHTML=table(products.filter(p=>(!q||p.name.toLowerCase().includes(q))&&(!c||p.category===c)));bind()}
-async function init(){if(!ready){$("#loginError").textContent="Isi SUPABASE_URL dan SUPABASE_ANON_KEY di admin.js terlebih dahulu.";return}const {data:{session}}=await sb.auth.getSession();if(session){showApp();load()}sb.auth.onAuthStateChange((_,s)=>s?showApp():showLogin())}
-$("#loginForm").onsubmit=async e=>{e.preventDefault();$("#loginError").textContent="";const {error}=await sb.auth.signInWithPassword({email:$("#email").value,password:$("#password").value});if(error)$("#loginError").textContent=error.message)};
+async function init(){
+  if(!ready){
+    $("#loginError").textContent="Isi SUPABASE_URL dan SUPABASE_ANON_KEY di admin.js terlebih dahulu.";
+    return;
+  }
+
+  const {data:{session}}=await sb.auth.getSession();
+
+  const hash=new URLSearchParams(location.hash.slice(1));
+  const isRecovery=hash.get("type")==="recovery";
+
+  if(session && !isRecovery){
+    showApp();
+    load();
+  }else if(!isRecovery){
+    showLogin();
+  }
+
+  sb.auth.onAuthStateChange((event,session)=>{
+    if(event==="PASSWORD_RECOVERY" && session){
+      setTimeout(async()=>{
+        const password=prompt("Masukkan password baru:");
+
+        if(!password || password.length<6){
+          alert("Password minimal 6 karakter.");
+          return;
+        }
+
+        const {error}=await sb.auth.updateUser({
+          password:password
+        });
+
+        if(error){
+          alert("Gagal mengubah password: "+error.message);
+          return;
+        }
+
+        alert("Password berhasil diubah. Silakan login kembali.");
+        await sb.auth.signOut();
+        showLogin();
+      },100);
+    }else if(event==="SIGNED_IN" && session){
+      showApp();
+      load();
+    }else if(event==="SIGNED_OUT"){
+      showLogin();
+    }
+  });
+}
 $("#logout").onclick=()=>sb.auth.signOut();$("#refresh").onclick=load;$("#search").oninput=renderTable;$("#filter").onchange=renderTable;$("#menu").onclick=()=>$("#sidebar").classList.toggle("open");
 $$(".nav").forEach(b=>b.onclick=()=>{$$(".nav").forEach(x=>x.classList.remove("active"));b.classList.add("active");$$(".view").forEach(x=>x.classList.add("hidden"));$(`#${b.dataset.view}View`).classList.remove("hidden");$("#title").textContent=b.dataset.view==="products"?"Products":"Dashboard";$("#sidebar").classList.remove("open")});
 function openModal(p){$("#modal").classList.remove("hidden");$("#formError").textContent="";$("#id").value=p?.id||"";$("#modalTitle").textContent=p?"Edit product":"Add product";$("#name").value=p?.name||"";$("#category").value=p?.category||"Parfume";$("#price").value=p?.price||0;$("#stock").value=p?.stock||0;$("#image").value=p?.image_url||"";$("#desc").value=p?.description||"";$("#activeBox").checked=p?p.is_active:true}
 function closeModal(){$("#modal").classList.add("hidden")}function edit(id){openModal(products.find(p=>String(p.id)===String(id)))}async function del(id){const p=products.find(x=>String(x.id)===String(id));if(!confirm(`Hapus "${p.name}"?`))return;const {error}=await sb.from("products").delete().eq("id",id);if(error)return toast(error.message);toast("Product deleted.");load()}
 $("#add,#dashAdd").onclick=()=>openModal();$("#close,#cancel").onclick=closeModal;
 $("#productForm").onsubmit=async e=>{e.preventDefault();$("#formError").textContent="";const id=$("#id").value,p={name:$("#name").value.trim(),category:$("#category").value,price:Number($("#price").value),stock:Number($("#stock").value),image_url:$("#image").value.trim()||null,description:$("#desc").value.trim()||null,is_active:$("#activeBox").checked};const r=id?await sb.from("products").update(p).eq("id",id):await sb.from("products").insert(p);if(r.error)return $("#formError").textContent=r.error.message;closeModal();toast(id?"Product updated.":"Product added.");load()};
-sb.auth.onAuthStateChange(async (event, session) => {
-  if (event === "PASSWORD_RECOVERY" && session) {const password = prompt("Masukkan password baru:"); if (!password || password.length < 6) {alert("Password minimal 6 karakter.");
-      return; }
-    const { error } = await sb.auth.updateUser({password: password});
-if (error) {alert("Gagal mengubah password: " + error.message);return;}
-    alert("Password berhasil diubah. Silakan login kembali.");await sb.auth.signOut();showLogin();});
 init();
