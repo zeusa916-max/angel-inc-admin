@@ -22,27 +22,9 @@ function closeModal(){$("#modal").classList.add("hidden")}function edit(id){open
 $("#add,#dashAdd").onclick=()=>openModal();$("#close,#cancel").onclick=closeModal;
 $("#productForm").onsubmit=async e=>{e.preventDefault();$("#formError").textContent="";const id=$("#id").value,p={name:$("#name").value.trim(),category:$("#category").value,price:Number($("#price").value),stock:Number($("#stock").value),image_url:$("#image").value.trim()||null,description:$("#desc").value.trim()||null,is_active:$("#activeBox").checked};const r=id?await sb.from("products").update(p).eq("id",id):await sb.from("products").insert(p);if(r.error)return $("#formError").textContent=r.error.message;closeModal();toast(id?"Product updated.":"Product added.");load()};
 sb.auth.onAuthStateChange(async (event, session) => {
-  if (event === "PASSWORD_RECOVERY" && session) {
-    const password = prompt("Masukkan password baru:");
-
-    if (!password || password.length < 6) {
-      alert("Password minimal 6 karakter.");
-      return;
-    }
-
-    const { error } = await sb.auth.updateUser({
-      password: password
-    });
-
-    if (error) {
-      alert("Gagal mengubah password: " + error.message);
-      return;
-    }
-
-    alert("Password berhasil diubah. Silakan login kembali.");
-    await sb.auth.signOut();
-    showLogin();
-  }
-});
-
+  if (event === "PASSWORD_RECOVERY" && session) {const password = prompt("Masukkan password baru:"); if (!password || password.length < 6) {alert("Password minimal 6 karakter.");
+      return; }
+    const { error } = await sb.auth.updateUser({password: password});
+if (error) {alert("Gagal mengubah password: " + error.message);return;}
+    alert("Password berhasil diubah. Silakan login kembali.");await sb.auth.signOut();showLogin();});
 init();
